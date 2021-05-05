@@ -1,0 +1,24 @@
+name: MiniProw
+on:
+  workflow_run:
+    workflows: ["CI Integration Tests"]
+    branches: [main, master]
+    types: 
+      - completed
+jobs:
+  issue_comment:
+    name: "MiniProw: Post CI Testing"
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uservers/miniprow/miniprow:latest
+      env: 
+          MINIPROW_PR: ${{ github.event.number }}
+          MINIPROW_COMMENT: ${{ github.event.comment.id }}
+          MINIPROW_TOKEN: ${{ secrets.MINIPROW_TOKEN }}
+          MINIPROW_REPO: ${{ github.repository }}
+          MINIPROW_EVENT: TESTSDONE
+    steps:
+      - uses: actions/checkout@v2
+        name: Clone Repo
+      - name: "Check Merge"
+        run: /app
