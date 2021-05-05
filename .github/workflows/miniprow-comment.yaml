@@ -1,0 +1,22 @@
+name: MiniProw
+on:
+  issue_comment:
+    types: [created, edited]
+jobs:
+  pr_comment:
+    name: "MiniProw: Comment Processor"
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uservers/miniprow/miniprow:latest
+      env: 
+          MINIPROW_PR: ${{ github.event.issue.number }}
+          MINIPROW_COMMENT: ${{ github.event.comment.id }}
+          MINIPROW_TOKEN: ${{ secrets.MINIPROW_TOKEN }}
+          MINIPROW_REPO: ${{ github.repository }}
+          MINIPROW_EVENT: COMMENT
+    steps:
+      - uses: actions/checkout@v2
+        name: Clone Repo
+      - name: "Container Step"
+        run: /app

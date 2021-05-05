@@ -1,0 +1,20 @@
+name: MiniProw
+on: pull_request_target
+
+jobs:
+  new_pr:
+    name: "MiniProw: Pull Request Handler"
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uservers/miniprow/miniprow:latest
+      env: 
+          MINIPROW_PR: ${{ github.event.number }}
+          MINIPROW_TOKEN: ${{ secrets.MINIPROW_TOKEN }}
+          MINIPROW_REPO: ${{ github.repository }}
+          MINIPROW_EVENT: NEWPR
+    steps:
+      - uses: actions/checkout@v2
+        name: Clone Repo
+      - name: "MiniProw Run"
+        run: /app
+        
