@@ -1,0 +1,19 @@
+---
+apiVersion: moonport.usvx.net/v1beta1 
+kind: Pipeline
+metadata:
+  name: "Hello World"
+spec:  
+  repo: "test"
+  serviceaccount: ""
+  env: {}
+  stages:
+    presubmit:
+      comment: "Primera"
+      steps:
+        - step: "hello-world"
+    postsubmit:
+      comment: "Ultima"
+      steps:
+        - step: "hello-world"
+        
