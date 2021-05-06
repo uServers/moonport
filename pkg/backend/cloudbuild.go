@@ -62,7 +62,7 @@ func (impl *defBackendCloudBuildImpl) CreateBuild(
 		env = append(env, fmt.Sprintf("%s=%s", n, val))
 	}
 	steps := []*cloudbuildpb.BuildStep{}
-	// FIXME: Cicla y dale
+
 	for name, stage := range p.Spec.Stages {
 		logrus.Info("Building stage " + name)
 		for _, stepspec := range stage.Steps {

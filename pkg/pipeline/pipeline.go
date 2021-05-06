@@ -112,9 +112,8 @@ func (p *Pipeline) Validate() error {
 func (p *Pipeline) GetStep(label string) *Step {
 	if step, ok := p.stepCatalog[label]; ok {
 		return step
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func (p *Pipeline) loadStepCatalog() error {
@@ -136,7 +135,7 @@ func ReadStepsDirectories(paths []string) (steps map[string]*Step, err error) {
 		}
 		for n, s := range dirSteps {
 			if _, ok := steps[n]; ok {
-				logrus.Warn("Duplicate step '%s' ", n)
+				logrus.Warnf("Duplicate step '%s' ", n)
 			}
 			steps[n] = s
 		}
@@ -193,7 +192,7 @@ func ReadStepsFromFile(path string) (map[string]*Step, error) {
 		if step.Metadata.Name != "" {
 			steps[step.Metadata.Name] = &step
 		} else {
-			logrus.Warning("Ignoring step #%d from %s as it does not have a name")
+			logrus.Warningf("Ignoring step #%d from %s as it does not have a name", i, path)
 		}
 		i++
 	}

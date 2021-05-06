@@ -19,7 +19,6 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	// p := pipeline.NewPipeline(nil)
 	lp, err := launchpad.New()
 	if err != nil {
 		logrus.Fatal(err)
