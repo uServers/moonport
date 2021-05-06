@@ -10,7 +10,16 @@ import (
 )
 
 func main() {
-	p := pipeline.NewPipeline(nil)
+	p, err := pipeline.NewPipelineFromFile(
+		"/home/urbano/Projects/moonport/examples/pipelines/hello-world.yaml",
+		&pipeline.Options{
+			StepSources: []string{"/home/urbano/Projects/moonport/examples/steps/"},
+		},
+	)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	// p := pipeline.NewPipeline(nil)
 	lp, err := launchpad.New()
 	if err != nil {
 		logrus.Fatal(err)

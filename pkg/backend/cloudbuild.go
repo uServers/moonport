@@ -5,6 +5,7 @@ package backend
 
 import (
 	"context"
+	"fmt"
 
 	cloudbuild "cloud.google.com/go/cloudbuild/apiv1/v2"
 	"github.com/pkg/errors"
@@ -33,45 +34,69 @@ type DriverCloudBuild struct {
 }
 
 type DriverCloudBuildImplementation interface {
-	CreateBuild(context.Context, *cloudbuild.Client) (*JobData, error)
+	CreateBuild(context.Context, *pipeline.Pipeline, *cloudbuild.Client) (*JobData, error)
 }
 
 // var client
 func (d *DriverCloudBuild) CreatePipeline(
 	ctx context.Context, p *pipeline.Pipeline) (data *JobData, err error,
 ) {
-	return d.impl.CreateBuild(context.Background(), d.client)
+	return d.impl.CreateBuild(context.Background(), p, d.client)
 }
 
 type defBackendCloudBuildImpl struct{}
 
 func (impl *defBackendCloudBuildImpl) CreateBuild(
-	ctx context.Context, client *cloudbuild.Client) (data *JobData, err error) {
+	ctx context.Context, p *pipeline.Pipeline, client *cloudbuild.Client,
+) (data *JobData, err error) {
+	// Verify the pipeline before launching
+	if err := p.Validate(); err != nil {
+		return nil, errors.Wrap(err, "while validating pipeline before launch")
+	}
+	// Launch the build
 	logrus.Info("Building Cloud Build request")
-	step := cloudbuildpb.BuildStep{
-		Name:       "ubuntu",
-		Env:        []string{},
-		Entrypoint: "bash",
-		Args:       []string{"-c", "echo hello world"},
-		/*
-			Dir:        "",
-			Id:         "",
-			WaitFor:    []string{},
 
-			SecretEnv:  []string{},
-			Volumes:    []*cloudbuildpb.Volume{},
-			Timing:     &cloudbuildpb.TimeSpan{},
-			PullTiming: &cloudbuildpb.TimeSpan{},
-			Timeout:    &durationpb.Duration{},
-			Status:     0,
-		*/
+	// Translate the env vars to a string slice
+	env := []string{}
+	for n, val := range p.Spec.EnvVars {
+		env = append(env, fmt.Sprintf("%s=%s", n, val))
+	}
+	steps := []*cloudbuildpb.BuildStep{}
+	// FIXME: Cicla y dale
+	for name, stage := range p.Spec.Stages {
+		logrus.Info("Building stage " + name)
+		for _, stepspec := range stage.Steps {
+			step := p.GetStep(stepspec.StepLabel)
+			if step == nil {
+				return nil, errors.New("unable to find step " + stepspec.StepLabel)
+			}
+			steps = append(steps, &cloudbuildpb.BuildStep{
+				Name:       step.Spec.Image,
+				Env:        env,
+				Entrypoint: "bash",
+				Args:       []string{"-c", "echo hello world"},
+				/*
+					Dir:        "",
+					Id:         "",
+					WaitFor:    []string{},
+
+					SecretEnv:  []string{},
+					Volumes:    []*cloudbuildpb.Volume{},
+					Timing:     &cloudbuildpb.TimeSpan{},
+					PullTiming: &cloudbuildpb.TimeSpan{},
+					Timeout:    &durationpb.Duration{},
+					Status:     0,
+				*/
+			})
+		}
 	}
 
 	req := &cloudbuildpb.CreateBuildRequest{
 		//Parent:    "",
 		ProjectId: "ulabs-cloud-tests",
 		Build: &cloudbuildpb.Build{
-			Steps: []*cloudbuildpb.BuildStep{&step},
+			Name:  p.Metadata.Name,
+			Steps: steps,
 			/*
 				Options:          &cloudbuildpb.BuildOptions{
 					SourceProvenanceHash:  []cloudbuildpb.Hash_HashType{},
