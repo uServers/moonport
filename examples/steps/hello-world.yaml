@@ -1,0 +1,12 @@
+---
+apiVersion: moonport.usvx.net/v1beta1 # fo
+kind: Step
+metadata:
+  name: "hello-world"
+spec:
+  name: "hello-world"
+  image: "ubuntu"
+  env: ["GITHUB_TOKEN":"123abc"]
+  entrypoint: "bash"
+  Args: ["-c", "echo hello world"]
+  
